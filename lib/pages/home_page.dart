@@ -30,7 +30,7 @@ class HomePage extends StatelessWidget {
       );
 
   Widget buildLoading() => Scaffold(
-        backgroundColor: Color.fromRGBO(30, 32, 70, 1),
+        backgroundColor: Colors.black,
         body: Column(
           children: [
             svg,
