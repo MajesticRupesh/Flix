@@ -29,11 +29,42 @@ class HomePage extends StatelessWidget {
         ),
       );
 
-  Widget buildLoading() => Stack(
-        fit: StackFit.expand,
-        children: [
-          svg,
-          Center(child: CircularProgressIndicator()),
-        ],
+  Widget buildLoading() => Scaffold(
+        backgroundColor: Color.fromRGBO(30, 32, 70, 1),
+        body: Column(
+          children: [
+            svg,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                margin: EdgeInsets.only(top: 50),
+                child: Center(
+                  child: Text(
+                    'Welcome to Flix',
+                    style: TextStyle(
+                      color: Color.fromRGBO(240, 240, 240, 1),
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                margin: EdgeInsets.fromLTRB(20, 30, 20, 0),
+                child: Text(
+                  'Your very own movie list. Add/Delete/Edit your list in a jiffy with Flex.',
+                  style: TextStyle(
+                    color: Color.fromRGBO(200, 200, 200, 1),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       );
 }
