@@ -127,9 +127,19 @@ class _LoggedInState extends State<LoggedIn> {
         ),
       );
     } else {
+      final len = movies.length.toString();
       return Column(
         children: [
-          SizedBox(height: 24),
+          SizedBox(height: 10),
+          Text(
+            'Total Movies: $len',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.green,
+            ),
+          ),
+          SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(8),
