@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'constants.dart';
 import '../provider/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,11 +14,7 @@ class LoggedInWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.black));
-    return MaterialApp(
-      theme: new ThemeData(canvasColor: Color.fromRGBO(46, 46, 46, 1)),
-      debugShowCheckedModeBanner: false,
-      home: LoggedIn(),
-    );
+    return LoggedIn();
   }
 }
 
@@ -32,7 +27,6 @@ class _LoggedInState extends State<LoggedIn> {
   ScrollController controller = ScrollController();
 
   final List<MovieList> movies = [];
-  List<dynamic> responseList = FOOD_DATA;
 
   @override
   void initState() {
@@ -47,7 +41,6 @@ class _LoggedInState extends State<LoggedIn> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
     final user = FirebaseAuth.instance.currentUser;
     final profpic = NetworkImage(user!.photoURL!);
     return SafeArea(
@@ -103,81 +96,18 @@ class _LoggedInState extends State<LoggedIn> {
           elevation: 0,
           backgroundColor: Colors.black,
         ),
-        body: Container(
-          height: size.height,
-          child: Column(
-            children: <Widget>[
-              const SizedBox(
-                height: 10,
-              ),
-              Expanded(
-                child: ListView.builder(
-                  controller: controller,
-                  itemCount: responseList.length,
-                  physics: BouncingScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    return Dismissible(
-                      key: new Key(responseList[index]["name"]),
-                      onDismissed: (direction) {
-                        setState(() {
-                          responseList.removeAt(index);
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(new SnackBar(content: new Text("Dismissed")));
-                      },
-                      background: Container(color: Colors.red),
-                      child: Container(
-                        height: 120,
-                        margin: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          color: Color.fromRGBO(30, 30, 30, 1),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Container(
-                                    width: 200,
-                                    child: Text(
-                                      responseList[index]["name"],
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    responseList[index]["director"],
-                                    style: const TextStyle(fontSize: 17, color: Color.fromRGBO(240, 240, 240, 1)),
-                                  ),
-                                ],
-                              ),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: Image.asset(
-                                  "assets/${responseList[index]["image"]}",
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+        body: ValueListenableBuilder<Box<MovieList>>(
+          valueListenable: Boxes.getMovies().listenable(),
+          builder: (context, box, _) {
+            final transactions = box.values.toList().cast<MovieList>();
+
+            return buildContent(transactions);
+          },
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => showDialog(
+          onPressed: () => showGeneralDialog(
             context: context,
-            builder: (context) => MovieListDialog(
+            pageBuilder: (BuildContext context, Animation animation, Animation secondaryAnimation) => MovieListDialog(
               onClickedDone: addMovie,
             ),
           ),
@@ -188,19 +118,108 @@ class _LoggedInState extends State<LoggedIn> {
     );
   }
 
+  Widget buildContent(List<MovieList> movies) {
+    if (movies.isEmpty) {
+      return Center(
+        child: Text(
+          'No Movies yet!',
+          style: TextStyle(fontSize: 24),
+        ),
+      );
+    } else {
+      return Column(
+        children: [
+          SizedBox(height: 24),
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.all(8),
+              itemCount: movies.length,
+              itemBuilder: (BuildContext context, int index) {
+                final movie = movies[index];
+
+                return buildMovie(context, movie);
+              },
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget buildMovie(BuildContext context, MovieList movie) {
+    return Card(
+      color: Color.fromRGBO(40, 40, 40, 1),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        title: Text(
+          movie.name,
+          maxLines: 2,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        subtitle: Text(movie.director),
+        trailing: Text(
+          movie.rating.toString(),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        children: [
+          buildButtons(context, movie),
+        ],
+      ),
+    );
+  }
+
+  Widget buildButtons(BuildContext context, MovieList movie) => Row(
+        children: [
+          Expanded(
+            child: TextButton.icon(
+              label: Text('Edit'),
+              icon: Icon(Icons.edit),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => MovieListDialog(
+                    movie: movie,
+                    onClickedDone: (name, director, rating) => editMovie(movie, name, director, rating),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: TextButton.icon(
+              label: Text(
+                'Delete',
+                style: TextStyle(color: Color.fromRGBO(220, 53, 69, 1)),
+              ),
+              icon: Icon(Icons.delete, color: Color.fromRGBO(220, 53, 69, 1)),
+              onPressed: () => deleteMovie(movie),
+            ),
+          )
+        ],
+      );
+
   Future addMovie(String name, String director, double rating) async {
-    final transaction = MovieList()
+    final movie = MovieList()
       ..name = name
       ..director = director
       ..rating = rating;
 
-    final box = Boxes.getTransactions();
-    box.add(transaction);
-    //box.put('mykey', transaction);
+    final box = Boxes.getMovies();
+    box.add(movie);
+  }
 
-    // final mybox = Boxes.getTransactions();
-    // final myTransaction = mybox.get('key');
-    // mybox.values;
-    // mybox.keys;
+  void editMovie(
+    MovieList transaction,
+    String name,
+    String director,
+    double rating,
+  ) {
+    transaction.name = name;
+    transaction.director = director;
+    transaction.rating = rating;
+    transaction.save();
+  }
+
+  void deleteMovie(MovieList transaction) {
+    transaction.delete();
   }
 }

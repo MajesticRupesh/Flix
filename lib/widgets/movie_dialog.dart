@@ -48,28 +48,38 @@ class _MovieListDialogState extends State<MovieListDialog> {
     final isEditing = widget.movie != null;
     final title = isEditing ? 'Edit Movie' : 'Add Movie';
 
-    return AlertDialog(
-      title: Text(title),
-      content: Form(
-        key: formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SizedBox(height: 8),
-              buildName(),
-              SizedBox(height: 8),
-              buildDirector(),
-              SizedBox(height: 8),
-              buildRating(),
-            ],
+    return Material(
+      color: Colors.black,
+      child: Container(
+        child: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.fromLTRB(20, 80, 20, 20),
+                  child: Column(
+                    children: [
+                      Text(
+                        title,
+                      ),
+                      SizedBox(height: 8),
+                      buildName(),
+                      SizedBox(height: 8),
+                      buildDirector(),
+                      SizedBox(height: 8),
+                      buildRating(),
+                      buildCancelButton(context),
+                      buildAddButton(context, isEditing: isEditing),
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
-      actions: <Widget>[
-        buildCancelButton(context),
-        buildAddButton(context, isEditing: isEditing),
-      ],
     );
   }
 

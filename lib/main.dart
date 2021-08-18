@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
+        theme: new ThemeData(canvasColor: Color.fromRGBO(46, 46, 46, 1), brightness: Brightness.dark),
         debugShowCheckedModeBanner: false,
         title: title,
         home: HomePage(),
