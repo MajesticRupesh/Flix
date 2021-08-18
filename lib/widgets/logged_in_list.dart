@@ -5,10 +5,11 @@ import 'constants.dart';
 import '../provider/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-void main() {
-  runApp(LoggedInWidget());
-}
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flix/models/movielist.dart';
+import 'movie_dialog.dart';
+import 'package:flix/boxes.dart';
 
 class LoggedInWidget extends StatelessWidget {
   @override
@@ -30,6 +31,7 @@ class LoggedIn extends StatefulWidget {
 class _LoggedInState extends State<LoggedIn> {
   ScrollController controller = ScrollController();
 
+  final List<MovieList> movies = [];
   List<dynamic> responseList = FOOD_DATA;
 
   @override
@@ -38,9 +40,16 @@ class _LoggedInState extends State<LoggedIn> {
   }
 
   @override
+  void dispose() {
+    Hive.box('movies').close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final user = FirebaseAuth.instance.currentUser;
+    final profpic = NetworkImage(user!.photoURL!);
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -57,7 +66,7 @@ class _LoggedInState extends State<LoggedIn> {
                   child: Column(children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundImage: NetworkImage(user!.photoURL!),
+                      backgroundImage: profpic,
                     ),
                     Text(
                       user.displayName!,
@@ -102,68 +111,96 @@ class _LoggedInState extends State<LoggedIn> {
                 height: 10,
               ),
               Expanded(
-                  child: ListView.builder(
-                      controller: controller,
-                      itemCount: responseList.length,
-                      physics: BouncingScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        return Dismissible(
-                          key: new Key(responseList[index]["name"]),
-                          onDismissed: (direction) {
-                            setState(() {
-                              responseList.removeAt(index);
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(new SnackBar(content: new Text("Dismissed")));
-                          },
-                          background: Container(color: Colors.red),
-                          child: Container(
-                            height: 120,
-                            margin: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                              color: Color.fromRGBO(30, 30, 30, 1),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: ListView.builder(
+                  controller: controller,
+                  itemCount: responseList.length,
+                  physics: BouncingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return Dismissible(
+                      key: new Key(responseList[index]["name"]),
+                      onDismissed: (direction) {
+                        setState(() {
+                          responseList.removeAt(index);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(new SnackBar(content: new Text("Dismissed")));
+                      },
+                      background: Container(color: Colors.red),
+                      child: Container(
+                        height: 120,
+                        margin: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                          color: Color.fromRGBO(30, 30, 30, 1),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Container(
-                                        width: 200,
-                                        child: Text(
-                                          responseList[index]["name"],
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                  Container(
+                                    width: 200,
+                                    child: Text(
+                                      responseList[index]["name"],
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
                                       ),
-                                      Text(
-                                        responseList[index]["director"],
-                                        style: const TextStyle(fontSize: 17, color: Color.fromRGBO(240, 240, 240, 1)),
-                                      ),
-                                    ],
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.asset(
-                                      "assets/${responseList[index]["image"]}",
                                     ),
-                                  )
+                                  ),
+                                  Text(
+                                    responseList[index]["director"],
+                                    style: const TextStyle(fontSize: 17, color: Color.fromRGBO(240, 240, 240, 1)),
+                                  ),
                                 ],
                               ),
-                            ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8.0),
+                                child: Image.asset(
+                                  "assets/${responseList[index]["image"]}",
+                                ),
+                              )
+                            ],
                           ),
-                        );
-                      })),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => showDialog(
+            context: context,
+            builder: (context) => MovieListDialog(
+              onClickedDone: addMovie,
+            ),
+          ),
+          child: const Icon(Icons.add),
+          backgroundColor: Colors.purple,
+        ),
       ),
     );
+  }
+
+  Future addMovie(String name, String director, double rating) async {
+    final transaction = MovieList()
+      ..name = name
+      ..director = director
+      ..rating = rating;
+
+    final box = Boxes.getTransactions();
+    box.add(transaction);
+    //box.put('mykey', transaction);
+
+    // final mybox = Boxes.getTransactions();
+    // final myTransaction = mybox.get('key');
+    // mybox.values;
+    // mybox.keys;
   }
 }
