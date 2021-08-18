@@ -30,66 +30,11 @@ class LoggedIn extends StatefulWidget {
 class _LoggedInState extends State<LoggedIn> {
   ScrollController controller = ScrollController();
 
-  List<Widget> itemsData = [];
-
-  void getPostsData() {
-    List<dynamic> responseList = FOOD_DATA;
-    List<Widget> listItems = [];
-    responseList.forEach((post) {
-      listItems.add(
-        Container(
-          height: 120,
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(10.0)),
-            color: Color.fromRGBO(30, 30, 30, 1),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      width: 200,
-                      child: Text(
-                        post["name"],
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      post["director"],
-                      style: const TextStyle(fontSize: 17, color: Color.fromRGBO(240, 240, 240, 1)),
-                    ),
-                  ],
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.asset(
-                    "assets/${post["image"]}",
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-      );
-    });
-    setState(() {
-      itemsData = listItems;
-    });
-  }
+  List<dynamic> responseList = FOOD_DATA;
 
   @override
   void initState() {
     super.initState();
-    getPostsData();
   }
 
   @override
@@ -159,16 +104,59 @@ class _LoggedInState extends State<LoggedIn> {
               Expanded(
                   child: ListView.builder(
                       controller: controller,
-                      itemCount: itemsData.length,
+                      itemCount: responseList.length,
                       physics: BouncingScrollPhysics(),
                       itemBuilder: (context, index) {
-                        double scale = 1.0;
-                        return Opacity(
-                          opacity: scale,
-                          child: Transform(
-                            transform: Matrix4.identity()..scale(scale, scale),
-                            alignment: Alignment.bottomCenter,
-                            child: Align(heightFactor: 1, alignment: Alignment.topCenter, child: itemsData[index]),
+                        return Dismissible(
+                          key: new Key(responseList[index]["name"]),
+                          onDismissed: (direction) {
+                            setState(() {
+                              responseList.removeAt(index);
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(new SnackBar(content: new Text("Dismissed")));
+                          },
+                          background: Container(color: Colors.red),
+                          child: Container(
+                            height: 120,
+                            margin: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                              color: Color.fromRGBO(30, 30, 30, 1),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Container(
+                                        width: 200,
+                                        child: Text(
+                                          responseList[index]["name"],
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        responseList[index]["director"],
+                                        style: const TextStyle(fontSize: 17, color: Color.fromRGBO(240, 240, 240, 1)),
+                                      ),
+                                    ],
+                                  ),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.asset(
+                                      "assets/${responseList[index]["image"]}",
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       })),
