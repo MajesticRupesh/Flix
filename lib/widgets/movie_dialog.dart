@@ -3,7 +3,7 @@ import 'package:flix/models/movielist.dart';
 
 class MovieListDialog extends StatefulWidget {
   final MovieList? movie;
-  final Function(String name, String director, double rating) onClickedDone;
+  final Function(String name, String director, double rating, String image) onClickedDone;
 
   const MovieListDialog({
     Key? key,
@@ -20,6 +20,7 @@ class _MovieListDialogState extends State<MovieListDialog> {
   final nameController = TextEditingController();
   final directorController = TextEditingController();
   final ratingController = TextEditingController();
+  final imageController = TextEditingController();
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _MovieListDialogState extends State<MovieListDialog> {
       nameController.text = movie.name;
       directorController.text = movie.director;
       ratingController.text = movie.rating.toString();
+      imageController.text = movie.image;
     }
   }
 
@@ -39,6 +41,7 @@ class _MovieListDialogState extends State<MovieListDialog> {
     nameController.dispose();
     directorController.dispose();
     ratingController.dispose();
+    imageController.dispose();
 
     super.dispose();
   }
@@ -63,15 +66,24 @@ class _MovieListDialogState extends State<MovieListDialog> {
                     children: [
                       Text(
                         title,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 16),
                       buildName(),
                       SizedBox(height: 8),
                       buildDirector(),
                       SizedBox(height: 8),
                       buildRating(),
-                      buildCancelButton(context),
-                      buildAddButton(context, isEditing: isEditing),
+                      SizedBox(height: 8),
+                      buildImage(),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          buildCancelButton(context),
+                          buildAddButton(context, isEditing: isEditing),
+                        ],
+                      ),
                     ],
                   ),
                 )
@@ -84,8 +96,11 @@ class _MovieListDialogState extends State<MovieListDialog> {
   }
 
   Widget buildName() => TextFormField(
+        style: TextStyle(color: Color.fromRGBO(69, 252, 165, 1), fontWeight: FontWeight.bold, fontSize: 18),
         controller: nameController,
         decoration: InputDecoration(
+          fillColor: Colors.pink,
+          prefixIcon: Icon(Icons.movie),
           border: OutlineInputBorder(),
           hintText: 'Enter Movie Name',
         ),
@@ -93,8 +108,10 @@ class _MovieListDialogState extends State<MovieListDialog> {
       );
 
   Widget buildDirector() => TextFormField(
+        style: TextStyle(color: Color.fromRGBO(69, 252, 165, 1), fontWeight: FontWeight.bold, fontSize: 18),
         controller: directorController,
         decoration: InputDecoration(
+          prefixIcon: Icon(Icons.person),
           border: OutlineInputBorder(),
           hintText: 'Enter Director Name',
         ),
@@ -102,7 +119,9 @@ class _MovieListDialogState extends State<MovieListDialog> {
       );
 
   Widget buildRating() => TextFormField(
+        style: TextStyle(color: Color.fromRGBO(69, 252, 165, 1), fontWeight: FontWeight.bold, fontSize: 18),
         decoration: InputDecoration(
+          prefixIcon: Icon(Icons.rate_review),
           border: OutlineInputBorder(),
           hintText: 'Enter Rating',
         ),
@@ -111,29 +130,47 @@ class _MovieListDialogState extends State<MovieListDialog> {
         controller: ratingController,
       );
 
-  Widget buildCancelButton(BuildContext context) => TextButton(
-        child: Text('Cancel'),
-        onPressed: () => Navigator.of(context).pop(),
+  Widget buildImage() => TextFormField(
+        style: TextStyle(color: Color.fromRGBO(69, 252, 165, 1), fontWeight: FontWeight.w700, fontSize: 18),
+        controller: imageController,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.image),
+          border: OutlineInputBorder(),
+          hintText: 'Enter Image Link',
+        ),
+        validator: (image) => image != null && image.isEmpty ? 'Enter Image Link' : null,
+      );
+
+  Widget buildCancelButton(BuildContext context) => Container(
+        child: TextButton(
+          style: TextButton.styleFrom(backgroundColor: Color.fromRGBO(255, 23, 85, 1)),
+          child: Text('Cancel', style: TextStyle(color: Colors.white, fontSize: 18)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       );
 
   Widget buildAddButton(BuildContext context, {required bool isEditing}) {
     final text = isEditing ? 'Save' : 'Add';
 
-    return TextButton(
-      child: Text(text),
-      onPressed: () async {
-        final isValid = formKey.currentState!.validate();
+    return Container(
+      child: TextButton(
+        style: TextButton.styleFrom(backgroundColor: Color.fromRGBO(2, 117, 216, 1)),
+        child: Text(text, style: TextStyle(color: Colors.white, fontSize: 18)),
+        onPressed: () async {
+          final isValid = formKey.currentState!.validate();
 
-        if (isValid) {
-          final name = nameController.text;
-          final director = directorController.text;
-          final rating = double.tryParse(ratingController.text) ?? 0;
+          if (isValid) {
+            final name = nameController.text;
+            final director = directorController.text;
+            final rating = double.tryParse(ratingController.text) ?? 0;
+            final image = imageController.text;
 
-          widget.onClickedDone(name, director, rating);
+            widget.onClickedDone(name, director, rating, image);
 
-          Navigator.of(context).pop();
-        }
-      },
+            Navigator.of(context).pop();
+          }
+        },
+      ),
     );
   }
 }

@@ -13,6 +13,6 @@ class MovieList extends HiveObject {
   @HiveField(2)
   late double rating;
 
-  //@HiveField(3)
-  //late String image;
+  @HiveField(3)
+  late String image;
 }

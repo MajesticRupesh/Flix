@@ -19,19 +19,22 @@ class MovieListAdapter extends TypeAdapter<MovieList> {
     return MovieList()
       ..name = fields[0] as String
       ..director = fields[1] as String
-      ..rating = fields[2] as double;
+      ..rating = fields[2] as double
+      ..image = fields[3] as String;
   }
 
   @override
   void write(BinaryWriter writer, MovieList obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
       ..write(obj.director)
       ..writeByte(2)
-      ..write(obj.rating);
+      ..write(obj.rating)
+      ..writeByte(3)
+      ..write(obj.image);
   }
 
   @override
