@@ -189,7 +189,7 @@ class _LoggedInState extends State<LoggedIn> {
             style: TextStyle(color: Colors.white),
           ),
           icon: Icon(Icons.star, color: Colors.yellow),
-          onPressed: () => deleteMovie(movie),
+          onPressed: () {},
         ),
         children: [
           buildButtons(context, movie),
